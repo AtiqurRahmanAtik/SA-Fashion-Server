@@ -8,7 +8,19 @@ const port = process.env.PROT || 5000
 
 
 // middleWare 
-app.use(cors())
+
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://sa-fashion-8fc4b.web.app",
+      "https://sa-fashion-8fc4b.firebaseapp.com",
+    ],
+    credentials: true,
+    optionsSuccessStatus: 200
+  })
+);
+
 app.use(express.json())
 
 
@@ -38,8 +50,20 @@ async function run() {
 
     // get all product api
     app.get('/product', async(req,res)=>{
+    const filter = req.query;
+    console.log(filter)
+
+    const query = {
+      ProductName : { $regex: filter.searching, $options: 'i'}
+    };
     
-    const result = await productCollection.find().toArray();
+    const options = {
+      sort : {
+        Price : filter.sort === 'asc' ? 1 : - 1 
+      }
+    };
+
+    const result = await productCollection.find(query,options).toArray();
     res.send(result);
     })
 
@@ -48,11 +72,24 @@ async function run() {
      app.get('/all-product', async(req,res)=>{
       const size = parseInt(req.query.size);
       const page = parseInt( req.query.page) - 1;
+      const filter= req.query.filter;
+      const sort = req.query.sort;
+      const search= req.query.search;
+      
       // console.log('size',size,'page',page)
 
-      const result = await productCollection.find().skip(page * size).limit(size).toArray();
+      let query = {
+        ProductName : { $regex:search, $options : 'i'}
+      }
+
+      if(filter) query.category = filter
+
+      let options = {}
+      if(sort) options ={sort : {ProductCreationDateTime: sort === 'asc'? 1 : -1}}
+
+      const result = await productCollection.find(query,options).skip(page * size).limit(size).toArray();
       res.send(result);
-      
+
       })
 
 
@@ -65,7 +102,7 @@ async function run() {
     
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
