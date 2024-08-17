@@ -21,6 +21,7 @@ app.use(
   })
 );
 
+
 app.use(express.json())
 
 
@@ -54,7 +55,7 @@ async function run() {
     console.log(filter)
 
     const query = {
-      ProductName : { $regex: filter.searching, $options: 'i'}
+      ProductName : { $regex: toString(filter.searching), $options: 'i'}
     };
     
     const options = {
@@ -102,7 +103,7 @@ async function run() {
     
 
     // Send a ping to confirm a successful connection
-    // await client.db("admin").command({ ping: 1 });
+    await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
