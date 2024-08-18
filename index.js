@@ -50,23 +50,32 @@ async function run() {
 
 
     // get all product api
-    app.get('/product', async(req,res)=>{
-    const filter = req.query;
-    console.log(filter)
-
-    const query = {
-      ProductName : { $regex: toString(filter.searching), $options: 'i'}
-    };
-    
-    const options = {
-      sort : {
-        Price : filter.sort === 'asc' ? 1 : - 1 
+    app.get('/product', async (req, res) => {
+      const filter = req.query;
+      console.log(filter);
+  
+      // Ensure filter.searching is a string or provide a default empty string
+      const searchTerm = filter.searching ? String(filter.searching) : '';
+  
+      const query = {
+          ProductName: { $regex: searchTerm, $options: 'i' }
+      };
+  
+      const options = {
+          sort: {
+              Price: filter.sort === 'asc' ? 1 : -1 
+          }
+      };
+  
+      try {
+          const result = await productCollection.find(query, options).toArray();
+          res.send(result);
+      } catch (error) {
+          console.error('Error fetching products:', error);
+          res.status(500).send('Internal Server Error');
       }
-    };
-
-    const result = await productCollection.find(query,options).toArray();
-    res.send(result);
-    })
+  });
+  
 
 
      // get all product api for pagination
