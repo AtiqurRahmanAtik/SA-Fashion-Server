@@ -54,7 +54,7 @@ async function run() {
       const filter = req.query;
       console.log(filter);
   
-      // Ensure filter.searching is a string or provide a default empty string
+      
       const searchTerm = filter.searching ? String(filter.searching) : '';
   
       const query = {
@@ -112,7 +112,7 @@ async function run() {
     
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
