@@ -79,30 +79,34 @@ async function run() {
 
 
      // get all product api for pagination
-     app.get('/all-product', async(req,res)=>{
-      const size = parseInt(req.query.size);
-      const page = parseInt( req.query.page) - 1;
-      const filter= req.query.filter;
-      const sort = req.query.sort;
-      const search= req.query.search;
-      
-      // console.log('size',size,'page',page)
-
+     app.get('/all-product', async (req, res) => {
+      const size = parseInt(req.query.size) || 10; // Default size
+      const page = parseInt(req.query.page) - 1 || 0; // Default page
+      const filter = req.query.filter || null;
+      const sort = req.query.sort || null;
+      const search = req.query.search || ''; // Default empty string if search is undefined
+  
       let query = {
-        ProductName : { $regex:search, $options : 'i'}
+          ProductName: { $regex: search, $options: 'i' } // Ensure search is a string
+      };
+  
+      if (filter) query.category = filter;
+  
+      let options = {};
+      if (sort) options = { sort: { ProductCreationDateTime: sort === 'asc' ? 1 : -1 } };
+  
+      try {
+          const result = await productCollection.find(query, options)
+              .skip(page * size)
+              .limit(size)
+              .toArray();
+          res.send(result);
+      } catch (error) {
+          console.error(error);
+          res.status(500).send("An error occurred while fetching products.");
       }
-
-      if(filter) query.category = filter
-
-      let options = {}
-      if(sort) options ={sort : {ProductCreationDateTime: sort === 'asc'? 1 : -1}}
-
-      const result = await productCollection.find(query,options).skip(page * size).limit(size).toArray();
-      res.send(result);
-
-      })
-
-
+  });
+  
        // get all product api for count
     app.get('/product-count', async(req,res)=>{
     
@@ -113,7 +117,7 @@ async function run() {
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
